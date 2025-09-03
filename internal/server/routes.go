@@ -13,6 +13,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	mux.HandleFunc("/health", s.healthHandler)
 	mux.HandleFunc("POST /v1/register", s.registerHandler)
 	mux.HandleFunc("POST /v1/login", s.loginHandler)
+	mux.HandleFunc("POST /v1/activity", s.createActivityHandler)
 
 	return s.authMiddleware(mux)
 }

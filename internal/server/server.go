@@ -1,13 +1,16 @@
 package server
 
 import (
+	"SaltySpitoon/internal/constants"
+	"SaltySpitoon/internal/repository"
 	"context"
 	"fmt"
-	"github.com/go-playground/validator/v10"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -15,6 +18,7 @@ import (
 type Service interface {
 	Login(ctx context.Context, email string, password string) (string, error)
 	Register(ctx context.Context, email string, password string) (string, error)
+	CreateActivity(ctx context.Context, userID int64, req CreateActivityRequest) (repository.Activity, error)
 }
 
 type Server struct {
@@ -30,6 +34,13 @@ func NewServer(service Service) *http.Server {
 		service:   service,
 		validator: validator.New(),
 	}
+
+	// Custom Validator For Activity Type
+	NewServer.validator.RegisterValidation("activity_type_enum", func(fl validator.FieldLevel) bool {
+		activityType := fl.Field().String()
+		_, ok := constants.ActivityTypes[activityType]
+		return ok
+	})
 
 	// Declare Server config
 	server := &http.Server{
