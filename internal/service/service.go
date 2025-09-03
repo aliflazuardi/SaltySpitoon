@@ -21,6 +21,10 @@ type Repository interface {
 	PatchActivity(ctx context.Context, arg repository.PatchActivityParams) (repository.PatchActivityRow, error)
 }
 
+type Storage interface {
+	UploadFile(ctx context.Context, bucket, localPath, remotePath string) (string, error)
+}
+
 func New(repository Repository) *Service {
 	return &Service{
 		repository: repository,
