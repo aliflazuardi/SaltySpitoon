@@ -35,3 +35,13 @@ type LoginResponse struct {
 	Email string `json:"email"`
 	Token string `json:"token"`
 }
+
+type CreateActivityResponse struct {
+	ActivityID        int64  `json:"activityId"`
+	ActivityType      string `json:"activityType"`
+	DoneAt            string `json:"doneAt"`
+	DurationInMinutes int32  `json:"durationInMinutes"`
+	CaloriesBurned    int32  `json:"caloriesBurned"`
+	CreatedAt         string `json:"createdAt,omitempty"`
+	UpdatedAt         string `json:"updatedAt,omitempty"`
+}
