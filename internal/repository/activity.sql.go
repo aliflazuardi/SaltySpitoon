@@ -48,3 +48,15 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 	)
 	return i, err
 }
+
+const deleteActivity = `-- name: DeleteActivity :execrows
+DELETE FROM activities WHERE id = $1
+`
+
+func (q *Queries) DeleteActivity(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteActivity, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}

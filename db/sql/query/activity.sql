@@ -5,3 +5,7 @@ INSERT INTO activities (
     $1, $2, $3, $4, $5, NOW(), NOW()
 )
 RETURNING id, user_id, activity_type, done_at, duration_minutes, calories_burned, created_at, updated_at;
+
+
+-- name: DeleteActivity :execrows
+DELETE FROM activities WHERE id = $1;
