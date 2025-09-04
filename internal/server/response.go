@@ -35,3 +35,14 @@ type LoginResponse struct {
 	Email string `json:"email"`
 	Token string `json:"token"`
 }
+
+type GetProfileResponse struct {
+	Preference string `json:"preference"`
+	Weightunit string `json:"weightUnit"`
+	Heightunit string `json:"heightUnit"`
+	Weight     int64  `json:"weight"`
+	Height     int64  `json:"height"`
+	Email      string `json:"email"`
+	Name       string `json:"name"`
+	Imageuri   string `json:"imageUri"`
+}

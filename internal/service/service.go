@@ -13,6 +13,7 @@ type Service struct {
 type Repository interface {
 	SelectUserByEmail(ctx context.Context, email string) (repository.SelectUserByEmailRow, error)
 	CreateUser(ctx context.Context, arg repository.CreateUserParams) error
+	SelectProfileById(ctx context.Context, id int64) (repository.SelectProfileByIdRow, error)
 }
 
 func New(repository Repository) *Service {

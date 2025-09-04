@@ -9,12 +9,15 @@ import (
 	"strconv"
 	"time"
 
+	"SaltySpitoon/internal/repository"
+
 	_ "github.com/joho/godotenv/autoload"
 )
 
 type Service interface {
 	Login(ctx context.Context, email string, password string) (string, error)
 	Register(ctx context.Context, email string, password string) (string, error)
+	GetProfile(ctx context.Context, id int64) (repository.SelectProfileByIdRow, error)
 }
 
 type Server struct {
