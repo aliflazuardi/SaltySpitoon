@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -98,4 +99,48 @@ func (s *Server) deleteActivityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendResponse(w, http.StatusOK, map[string]string{"message": "deleted"})
+}
+
+func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		sendErrorResponse(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	defer r.Body.Close()
+
+	// Ambil activityId dari URL
+	const prefix = "/v1/activity/"
+	activityID := strings.TrimPrefix(r.URL.Path, prefix)
+	if activityID == "" {
+		sendErrorResponse(w, http.StatusBadRequest, "missing activityId")
+		return
+	}
+	activityIDInt, err := strconv.Atoi(activityID)
+	if err != nil {
+		sendErrorResponse(w, http.StatusBadRequest, "invalid activityId")
+		return
+	}
+
+	// Decode request body
+	var req PatchActivityRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		sendErrorResponse(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+
+	// Call service
+	ctx := r.Context()
+	res, err := s.service.PatchActivity(ctx, int64(activityIDInt), req)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			sendErrorResponse(w, http.StatusNotFound, "activityId not found")
+		default:
+			log.Printf("failed to patch activity (id=%d): %v", activityIDInt, err)
+			sendErrorResponse(w, http.StatusInternalServerError, "server error")
+		}
+		return
+	}
+
+	sendResponse(w, http.StatusOK, res)
 }
