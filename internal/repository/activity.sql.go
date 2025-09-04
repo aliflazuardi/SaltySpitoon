@@ -7,6 +7,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -59,4 +60,55 @@ func (q *Queries) DeleteActivity(ctx context.Context, id int64) (int64, error) {
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const patchActivity = `-- name: PatchActivity :one
+UPDATE activities
+SET
+    activity_type = COALESCE($1, activity_type),
+    done_at = COALESCE($2, done_at),
+    duration_minutes = COALESCE($3, duration_minutes),
+    calories_burned = COALESCE($4, calories_burned),
+    updated_at = now()
+WHERE id = $5
+RETURNING id, activity_type, done_at, duration_minutes, calories_burned, created_at, updated_at
+`
+
+type PatchActivityParams struct {
+	ActivityType    sql.NullString
+	DoneAt          sql.NullTime
+	DurationMinutes sql.NullInt32
+	CaloriesBurned  sql.NullInt32
+	ID              int64
+}
+
+type PatchActivityRow struct {
+	ID              int64
+	ActivityType    string
+	DoneAt          time.Time
+	DurationMinutes int32
+	CaloriesBurned  int32
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+func (q *Queries) PatchActivity(ctx context.Context, arg PatchActivityParams) (PatchActivityRow, error) {
+	row := q.db.QueryRowContext(ctx, patchActivity,
+		arg.ActivityType,
+		arg.DoneAt,
+		arg.DurationMinutes,
+		arg.CaloriesBurned,
+		arg.ID,
+	)
+	var i PatchActivityRow
+	err := row.Scan(
+		&i.ID,
+		&i.ActivityType,
+		&i.DoneAt,
+		&i.DurationMinutes,
+		&i.CaloriesBurned,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
