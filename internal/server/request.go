@@ -15,3 +15,9 @@ type CreateActivityRequest struct {
 	DoneAt            string `json:"doneAt" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
 	DurationInMinutes int    `json:"durationInMinutes" validate:"required,min=1"`
 }
+
+type PatchActivityRequest struct {
+	ActivityType      *string `json:"activityType,omitempty"`
+	DoneAt            *string `json:"doneAt,omitempty"`
+	DurationInMinutes *int    `json:"durationInMinutes,omitempty"`
+}

@@ -49,3 +49,13 @@ type CreateActivityResponse struct {
 type DeleteActivityResponse struct {
 	Message string `json:"message"`
 }
+
+type PatchActivityResponse struct {
+	ActivityID        int64  `json:"activityId"`
+	ActivityType      string `json:"activityType"`
+	DoneAt            string `json:"doneAt"`
+	DurationInMinutes int    `json:"durationInMinutes"`
+	CaloriesBurned    int    `json:"caloriesBurned"`
+	CreatedAt         string `json:"createdAt"`
+	UpdatedAt         string `json:"updatedAt"`
+}
