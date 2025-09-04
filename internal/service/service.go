@@ -17,6 +17,7 @@ type Repository interface {
 
 	// Activity
 	CreateActivity(ctx context.Context, arg repository.CreateActivityParams) (repository.Activity, error)
+	DeleteActivity(ctx context.Context, id int64) (int64, error)
 }
 
 func New(repository Repository) *Service {

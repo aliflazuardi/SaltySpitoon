@@ -5,6 +5,7 @@ import (
 	"SaltySpitoon/internal/repository"
 	"SaltySpitoon/internal/server"
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -39,4 +40,15 @@ func (s *Service) CreateActivity(ctx context.Context, userID int64, req server.C
 
 	// 5. return activity lengkap
 	return activity, nil
+}
+
+func (s *Service) DeleteActivity(ctx context.Context, id int64) error {
+	rows, err := s.repository.DeleteActivity(ctx, id)
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
 }
