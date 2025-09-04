@@ -15,6 +15,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	mux.HandleFunc("/health", s.healthHandler)
 	mux.HandleFunc("POST /v1/register", s.registerHandler)
 	mux.HandleFunc("POST /v1/login", s.loginHandler)
+	mux.HandleFunc("GET /v1/user", s.getProfileHandler)
 	mux.HandleFunc("POST /v1/activity", s.createActivityHandler)
 	mux.HandleFunc("DELETE /v1/activity/", s.deleteActivityHandler)
 	mux.HandleFunc("PATCH /v1/activity/", s.patchActivityHandler)
