@@ -1,9 +1,12 @@
 package server
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -60,4 +63,39 @@ func (s *Server) createActivityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendResponse(w, http.StatusCreated, resp)
+}
+
+func (s *Server) deleteActivityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		sendErrorResponse(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	prefix := "/v1/activity/"
+	path := r.URL.Path
+	if len(path) <= len(prefix) {
+		sendErrorResponse(w, http.StatusBadRequest, "missing activityId")
+		return
+	}
+
+	activityID := path[len(prefix):]
+	activityIDInt, err := strconv.Atoi(activityID)
+	if err != nil {
+		sendErrorResponse(w, http.StatusBadRequest, "invalid activityId")
+		return
+	}
+
+	ctx := r.Context()
+	err = s.service.DeleteActivity(ctx, int64(activityIDInt))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			sendErrorResponse(w, http.StatusNotFound, "activityId not found")
+			return
+		}
+		log.Println("failed to delete activity:", err)
+		sendErrorResponse(w, http.StatusInternalServerError, "server error")
+		return
+	}
+
+	sendResponse(w, http.StatusOK, map[string]string{"message": "deleted"})
 }

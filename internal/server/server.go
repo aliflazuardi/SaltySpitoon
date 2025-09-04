@@ -19,6 +19,7 @@ type Service interface {
 	Login(ctx context.Context, email string, password string) (string, error)
 	Register(ctx context.Context, email string, password string) (string, error)
 	CreateActivity(ctx context.Context, userID int64, req CreateActivityRequest) (repository.Activity, error)
+	DeleteActivity(ctx context.Context, id int64) error
 }
 
 type Server struct {

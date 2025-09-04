@@ -45,3 +45,7 @@ type CreateActivityResponse struct {
 	CreatedAt         string `json:"createdAt,omitempty"`
 	UpdatedAt         string `json:"updatedAt,omitempty"`
 }
+
+type DeleteActivityResponse struct {
+	Message string `json:"message"`
+}
