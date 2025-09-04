@@ -13,7 +13,7 @@ type Service struct {
 type Repository interface {
 	// User
 	SelectUserByEmail(ctx context.Context, email string) (repository.SelectUserByEmailRow, error)
-	CreateUser(ctx context.Context, arg repository.CreateUserParams) error
+	CreateUser(ctx context.Context, arg repository.CreateUserParams) (int64, error)
 
 	// Activity
 	CreateActivity(ctx context.Context, arg repository.CreateActivityParams) (repository.Activity, error)

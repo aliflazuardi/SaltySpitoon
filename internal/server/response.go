@@ -36,6 +36,11 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+type RegisterResponse struct {
+	Email string `json:"email"`
+	Token string `json:"token"`
+}
+
 type CreateActivityResponse struct {
 	ActivityID        int64  `json:"activityId"`
 	ActivityType      string `json:"activityType"`
