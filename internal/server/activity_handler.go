@@ -174,12 +174,7 @@ func (s *Server) getPaginatedActivityHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	req := &GetPaginatedActivityRequest{
-		Limit:  5,
-		Offset: 0,
-	}
-
-	req = parseRequestActivityPaginatedParams(r)
+	req := parseRequestActivityPaginatedParams(r)
 	ctx := r.Context()
 	res, err := s.service.GetPaginatedActivity(ctx, int64(userID), *req)
 	if err != nil {
@@ -203,7 +198,6 @@ func parseRequestActivityPaginatedParams(r *http.Request) *GetPaginatedActivityR
 	}
 
 	query := r.URL.Query()
-
 	if limitStr := query.Get("limit"); limitStr != "" {
 		if limit, err := strconv.Atoi(limitStr); err == nil && limit > 0 && limit <= 100 {
 			req.Limit = limit

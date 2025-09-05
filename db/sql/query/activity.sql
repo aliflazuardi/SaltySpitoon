@@ -22,18 +22,12 @@ WHERE id = sqlc.arg('id')
 RETURNING id, activity_type, done_at, duration_minutes, calories_burned, created_at, updated_at;
 
 -- name: GetPaginatedActivity :many
-SELECT 
-    id, 
-    activity_type, 
-    done_at, 
-    duration_minutes, 
-    calories_burned, 
-    created_at
+SELECT id, activity_type, done_at, duration_minutes, calories_burned, created_at
 FROM activities
 WHERE user_id = $1
-  AND ($2 IS NULL OR activity_type = $2)
-  AND ($3 IS NULL OR done_at >= $3)
-  AND ($4 IS NULL OR done_at <= $4)
-  AND ($5 IS NULL OR calories_burned >= $5)
-  AND ($6 IS NULL OR calories_burned <= $6)
+  AND (COALESCE($2::text, '') = '' OR activity_type = $2::text)
+  AND (COALESCE($3::timestamptz, '1900-01-01'::timestamptz) = '1900-01-01'::timestamptz OR done_at >= $3::timestamptz)
+  AND (COALESCE($4::timestamptz, '2100-01-01'::timestamptz) = '2100-01-01'::timestamptz OR done_at <= $4::timestamptz)
+  AND (COALESCE($5::integer, -1) = -1 OR calories_burned >= $5::integer)
+  AND (COALESCE($6::integer, -1) = -1 OR calories_burned <= $6::integer)
 LIMIT $7 OFFSET $8;

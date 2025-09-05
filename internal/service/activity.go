@@ -13,6 +13,17 @@ import (
 	"time"
 )
 
+const (
+	NoFilterString      = ""
+	NoFilterInt         = -1
+	NoFilterCaloriesMax = 999999 // High number for max calories
+)
+
+var (
+	NoFilterDateFrom = time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
+	NoFilterDateTo   = time.Date(2100, 1, 1, 0, 0, 0, 0, time.UTC)
+)
+
 func (s *Service) CreateActivity(ctx context.Context, userID int64, req server.CreateActivityRequest) (repository.Activity, error) {
 	caloriesPerMinute, ok := constants.ActivityTypes[req.ActivityType]
 	if !ok {
@@ -96,16 +107,8 @@ func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchA
 }
 
 func (s *Service) GetPaginatedActivity(ctx context.Context, userId int64, req server.GetPaginatedActivityRequest) ([]server.GetPaginatedActivityResponse, error) {
-	rows, err := s.repository.GetPaginatedActivity(ctx, repository.GetPaginatedActivityParams{
-		UserID:  userId,
-		Column2: req.ActivityType,
-		Column3: req.DoneAtFrom,
-		Column4: req.DoneAtTo,
-		Column5: req.CaloriesBurnedMin,
-		Column6: req.CaloriesBurnedMax,
-		Limit:   int32(req.Limit),
-		Offset:  int32(req.Offset),
-	})
+	params := parsePaginatedParams(req, userId)
+	rows, err := s.repository.GetPaginatedActivity(ctx, params)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -127,4 +130,44 @@ func (s *Service) GetPaginatedActivity(ctx context.Context, userId int64, req se
 	}
 
 	return activities, nil
+}
+
+func parsePaginatedParams(req server.GetPaginatedActivityRequest, userId int64) repository.GetPaginatedActivityParams {
+	params := repository.GetPaginatedActivityParams{
+		UserID: userId,
+		Limit:  int32(req.Limit),
+		Offset: int32(req.Offset),
+	}
+
+	if req.ActivityType != "" {
+		params.Column2 = req.ActivityType
+	} else {
+		params.Column2 = NoFilterString
+	}
+
+	if req.DoneAtFrom != nil {
+		params.Column3 = *req.DoneAtFrom
+	} else {
+		params.Column3 = NoFilterDateFrom
+	}
+
+	if req.DoneAtTo != nil {
+		params.Column4 = *req.DoneAtTo
+	} else {
+		params.Column4 = NoFilterDateTo
+	}
+
+	if req.CaloriesBurnedMin != nil {
+		params.Column5 = int32(*req.CaloriesBurnedMin)
+	} else {
+		params.Column5 = NoFilterInt
+	}
+
+	if req.CaloriesBurnedMax != nil {
+		params.Column6 = int32(*req.CaloriesBurnedMax)
+	} else {
+		params.Column6 = NoFilterCaloriesMax
+	}
+
+	return params
 }

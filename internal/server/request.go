@@ -51,11 +51,11 @@ func (r *PatchActivityRequest) Validate() error {
 }
 
 type GetPaginatedActivityRequest struct {
-	Limit             int        `json:"limit" validate:"min=1,max=100"`
-	Offset            int        `json:"offset" validate:"min=0"`
-	ActivityType      string     `json:"activity_type,omitempty"`
-	DoneAtFrom        *time.Time `json:"done_at_from,omitempty"`
-	DoneAtTo          *time.Time `json:"done_at_to,omitempty"`
-	CaloriesBurnedMin *int       `json:"calories_burned_min,omitempty"`
-	CaloriesBurnedMax *int       `json:"calories_burned_max,omitempty"`
+	Limit             int
+	Offset            int
+	ActivityType      string
+	DoneAtFrom        *time.Time
+	DoneAtTo          *time.Time
+	CaloriesBurnedMin *int
+	CaloriesBurnedMax *int
 }

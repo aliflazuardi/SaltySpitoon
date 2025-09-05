@@ -63,30 +63,24 @@ func (q *Queries) DeleteActivity(ctx context.Context, id int64) (int64, error) {
 }
 
 const getPaginatedActivity = `-- name: GetPaginatedActivity :many
-SELECT 
-    id, 
-    activity_type, 
-    done_at, 
-    duration_minutes, 
-    calories_burned, 
-    created_at
+SELECT id, activity_type, done_at, duration_minutes, calories_burned, created_at
 FROM activities
 WHERE user_id = $1
-  AND ($2 IS NULL OR activity_type = $2)
-  AND ($3 IS NULL OR done_at >= $3)
-  AND ($4 IS NULL OR done_at <= $4)
-  AND ($5 IS NULL OR calories_burned >= $5)
-  AND ($6 IS NULL OR calories_burned <= $6)
+  AND (COALESCE($2::text, '') = '' OR activity_type = $2::text)
+  AND (COALESCE($3::timestamptz, '1900-01-01'::timestamptz) = '1900-01-01'::timestamptz OR done_at >= $3::timestamptz)
+  AND (COALESCE($4::timestamptz, '2100-01-01'::timestamptz) = '2100-01-01'::timestamptz OR done_at <= $4::timestamptz)
+  AND (COALESCE($5::integer, -1) = -1 OR calories_burned >= $5::integer)
+  AND (COALESCE($6::integer, -1) = -1 OR calories_burned <= $6::integer)
 LIMIT $7 OFFSET $8
 `
 
 type GetPaginatedActivityParams struct {
 	UserID  int64
-	Column2 interface{}
-	Column3 interface{}
-	Column4 interface{}
-	Column5 interface{}
-	Column6 interface{}
+	Column2 string
+	Column3 time.Time
+	Column4 time.Time
+	Column5 int32
+	Column6 int32
 	Limit   int32
 	Offset  int32
 }
