@@ -80,5 +80,5 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 		Email: req.Email,
 		Token: token,
 	}
-	sendResponse(w, http.StatusOK, resp)
+	sendResponse(w, http.StatusCreated, resp)
 }
