@@ -163,7 +163,7 @@ func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) getPaginatedActivityHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		sendErrorResponse(w, http.StatusMethodNotAllowed, "method not allowed")
+		sendErrorResponse(w, http.StatusInternalServerError, "method not allowed")
 		return
 	}
 	defer r.Body.Close()
@@ -185,7 +185,7 @@ func (s *Server) getPaginatedActivityHandler(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			sendErrorResponse(w, http.StatusNotFound, "activityId not found")
+			sendErrorResponse(w, http.StatusInternalServerError, "activities this user is not found")
 		default:
 			log.Printf("failed to get user activitities (id=%d): %v", userID, err)
 			sendErrorResponse(w, http.StatusInternalServerError, "server error")
