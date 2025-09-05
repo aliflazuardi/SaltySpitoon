@@ -1,14 +1,12 @@
 package service
 
 import (
-	"SaltySpitoon/internal/constants"
 	"SaltySpitoon/internal/model"
 	"SaltySpitoon/internal/repository"
 	"SaltySpitoon/internal/utils"
 	"context"
 	"database/sql"
 	"strconv"
-	"strings"
 )
 
 func (s *Service) Login(ctx context.Context, email string, password string) (string, error) {
@@ -63,9 +61,6 @@ func (s *Service) GetProfile(ctx context.Context, id int64) (repository.SelectPr
 	user, err := s.repository.SelectProfileById(ctx, id)
 	// wrong id, error id
 	if err != nil {
-		if strings.Contains(err.Error(), "sql: no row in result set") {
-			return repository.SelectProfileByIdRow{}, constants.ErrUserNotFound
-		}
 		return repository.SelectProfileByIdRow{}, err
 	}
 
