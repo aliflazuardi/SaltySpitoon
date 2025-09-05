@@ -20,7 +20,7 @@ type Service interface {
 	Register(ctx context.Context, email string, password string) (string, error)
 	CreateActivity(ctx context.Context, userID int64, req CreateActivityRequest) (repository.Activity, error)
 	DeleteActivity(ctx context.Context, id int64) error
-	PatchActivity(ctx context.Context, id int64, req PatchActivityRequest) (PatchActivityResponse, error)
+	PatchActivity(ctx context.Context, id int64, req PatchActivityRequest) (repository.PatchActivityRow, error)
 }
 
 type Server struct {
