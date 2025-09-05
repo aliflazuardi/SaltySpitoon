@@ -137,7 +137,7 @@ func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	row, err := s.service.PatchActivity(ctx, int64(id), req)
+	resp, err := s.service.PatchActivity(ctx, int64(id), req)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -149,14 +149,87 @@ func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := PatchActivityResponse{
-		ActivityID:        strconv.Itoa(int(row.ID)),
-		ActivityType:      row.ActivityType,
-		DoneAt:            row.DoneAt.Format(time.RFC3339Nano),
-		DurationInMinutes: int(row.DurationMinutes),
-		CaloriesBurned:    int(row.CaloriesBurned),
-		CreatedAt:         utils.NullTimeToString(row.CreatedAt),
-		UpdatedAt:         utils.NullTimeToString(row.UpdatedAt),
-	}
 	sendResponse(w, http.StatusOK, resp)
+}
+
+func (s *Server) getPaginatedActivityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		sendErrorResponse(w, http.StatusInternalServerError, "method not allowed")
+		return
+	}
+	defer r.Body.Close()
+
+	userID, ok := utils.GetUserIDFromCtx(r.Context())
+	if !ok {
+		sendErrorResponse(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	req := parseRequestActivityPaginatedParams(r)
+	ctx := r.Context()
+	res, err := s.service.GetPaginatedActivity(ctx, int64(userID), *req)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			sendErrorResponse(w, http.StatusInternalServerError, "activities this user is not found")
+		default:
+			log.Printf("failed to get user activitities (id=%d): %v", userID, err)
+			sendErrorResponse(w, http.StatusInternalServerError, "server error")
+		}
+		return
+	}
+
+	sendResponse(w, http.StatusOK, res)
+}
+
+func parseRequestActivityPaginatedParams(r *http.Request) *GetPaginatedActivityRequest {
+	req := &GetPaginatedActivityRequest{
+		Limit:  5,
+		Offset: 0,
+	}
+
+	query := r.URL.Query()
+	if limitStr := query.Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil && limit > 0 && limit <= 100 {
+			req.Limit = limit
+		}
+	}
+
+	if offsetStr := query.Get("offset"); offsetStr != "" {
+		if offset, err := strconv.Atoi(offsetStr); err == nil && offset >= 0 {
+			req.Offset = offset
+		}
+	}
+
+	if activityType := query.Get("activityType"); activityType != "" {
+		if utils.IsValidActivityType(activityType) {
+			req.ActivityType = activityType
+		}
+	}
+
+	if doneAtFromStr := query.Get("doneAtFrom"); doneAtFromStr != "" {
+		if doneAtFrom, err := utils.ParseISODate(doneAtFromStr); err == nil {
+			req.DoneAtFrom = &doneAtFrom
+		}
+	}
+
+	if doneAtToStr := query.Get("doneAtTo"); doneAtToStr != "" {
+		if doneAtTo, err := utils.ParseISODate(doneAtToStr); err == nil {
+			req.DoneAtTo = &doneAtTo
+		}
+	}
+
+	if caloriesMinStr := query.Get("caloriesBurnedMin"); caloriesMinStr != "" {
+		if caloriesMin, err := strconv.Atoi(caloriesMinStr); err == nil && caloriesMin >= 0 {
+			req.CaloriesBurnedMin = &caloriesMin
+		}
+	}
+
+	if caloriesMaxStr := query.Get("caloriesBurnedMax"); caloriesMaxStr != "" {
+		if caloriesMax, err := strconv.Atoi(caloriesMaxStr); err == nil && caloriesMax >= 0 {
+			req.CaloriesBurnedMax = &caloriesMax
+		}
+	}
+
+	return req
 }

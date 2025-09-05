@@ -49,3 +49,13 @@ func (r *PatchActivityRequest) Validate() error {
 	}
 	return nil
 }
+
+type GetPaginatedActivityRequest struct {
+	Limit             int
+	Offset            int
+	ActivityType      string
+	DoneAtFrom        *time.Time
+	DoneAtTo          *time.Time
+	CaloriesBurnedMin *int
+	CaloriesBurnedMax *int
+}

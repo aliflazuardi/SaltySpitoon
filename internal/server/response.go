@@ -64,3 +64,12 @@ type PatchActivityResponse struct {
 	CreatedAt         string `json:"createdAt"`
 	UpdatedAt         string `json:"updatedAt"`
 }
+
+type GetPaginatedActivityResponse struct {
+	ActivityID        string `json:"activityId"`
+	ActivityType      string `json:"activityType"`
+	DoneAt            string `json:"doneAt"`
+	DurationInMinutes int    `json:"durationInMinutes"`
+	CaloriesBurned    int    `json:"caloriesBurned"`
+	CreatedAt         string `json:"createdAt"`
+}
