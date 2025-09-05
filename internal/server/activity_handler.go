@@ -137,7 +137,7 @@ func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	row, err := s.service.PatchActivity(ctx, int64(id), req)
+	resp, err := s.service.PatchActivity(ctx, int64(id), req)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -149,15 +149,6 @@ func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := PatchActivityResponse{
-		ActivityID:        row.ActivityID,
-		ActivityType:      row.ActivityType,
-		DoneAt:            row.DoneAt,
-		DurationInMinutes: row.DurationInMinutes,
-		CaloriesBurned:    int(row.CaloriesBurned),
-		CreatedAt:         row.CreatedAt,
-		UpdatedAt:         row.UpdatedAt,
-	}
 	sendResponse(w, http.StatusOK, resp)
 }
 
