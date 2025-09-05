@@ -32,7 +32,7 @@ func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := s.service.GetProfile(ctx, userID)
 	if err != nil {
 		log.Println("user not found")
-		sendErrorResponse(w, http.StatusBadRequest, "invalid request")
+		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -54,8 +54,15 @@ func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
 	var req PatchUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		log.Println("invalid patch request")
+		log.Println("invalid patch request: %s\n", err.Error())
 		sendErrorResponse(w, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	err = s.validator.Struct(req)
+	if err != nil {
+		log.Printf("invalid patch request: %s\n", err.Error())
+		sendErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -70,6 +77,12 @@ func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Imageuri:   req.Imageuri,
 	}
 	update, err := s.service.PatchProfile(ctx, userID, params)
+
+	if err != nil {
+		log.Println("error patch user: %s\n", err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 
 	resp := PatchProfileResponse{
 		Preference: toString(update.Preference),
