@@ -24,6 +24,44 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
+const patchProfileById = `-- name: PatchProfileById :exec
+UPDATE users 
+    SET 
+        preference = COALESCE($2, preference),
+        weight_unit = COALESCE($3, weight_unit),
+        height_unit = COALESCE($4, height_unit),
+        weight = COALESCE($5, weight),
+        height = COALESCE($6, height),
+        name = COALESCE($7, name),
+        image_uri = COALESCE($8, image_uri)
+WHERE id = $1
+`
+
+type PatchProfileByIdParams struct {
+	ID         int64
+	Preference sql.NullString
+	WeightUnit sql.NullString
+	HeightUnit sql.NullString
+	Weight     sql.NullString
+	Height     sql.NullString
+	Name       sql.NullString
+	ImageUri   sql.NullString
+}
+
+func (q *Queries) PatchProfileById(ctx context.Context, arg PatchProfileByIdParams) error {
+	_, err := q.db.ExecContext(ctx, patchProfileById,
+		arg.ID,
+		arg.Preference,
+		arg.WeightUnit,
+		arg.HeightUnit,
+		arg.Weight,
+		arg.Height,
+		arg.Name,
+		arg.ImageUri,
+	)
+	return err
+}
+
 const selectProfileById = `-- name: SelectProfileById :one
 SELECT preference, weight_unit as weightUnit, height_unit as heightUnit, weight, height, email, name, image_uri as imageUri FROM users where id = $1
 `
