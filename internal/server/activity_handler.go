@@ -1,6 +1,7 @@
 package server
 
 import (
+	"SaltySpitoon/internal/utils"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -29,14 +30,13 @@ func (s *Server) createActivityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// userID, ok := utils.GetUserIDFromCtx(ctx)
-	// if !ok {
-	// 	sendErrorResponse(w, http.StatusUnauthorized, "unauthorized")
-	// 	return
-	// }
+	userID, ok := utils.GetUserIDFromCtx(ctx)
+	if !ok {
+		sendErrorResponse(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
 
-	// sementara hardcode userID
-	userID := int64(1)
+	// userID := int64(1)
 
 	activity, err := s.service.CreateActivity(ctx, userID, req)
 	if err != nil {
@@ -108,7 +108,6 @@ func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	// Ambil activityId dari URL
 	const prefix = "/v1/activity/"
 	activityID := strings.TrimPrefix(r.URL.Path, prefix)
 	if activityID == "" {
@@ -121,14 +120,12 @@ func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decode request body
 	var req PatchActivityRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, "invalid json")
 		return
 	}
 
-	// Call service
 	ctx := r.Context()
 	res, err := s.service.PatchActivity(ctx, int64(activityIDInt), req)
 	if err != nil {
