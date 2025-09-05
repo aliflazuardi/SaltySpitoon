@@ -2,7 +2,10 @@ package server
 
 import (
 	"SaltySpitoon/internal/constants"
+	"SaltySpitoon/internal/model"
+	"SaltySpitoon/internal/utils"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -28,8 +31,8 @@ func toInt(ni sql.NullString) int64 {
 
 func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	id := int64(12345)
-	user, err := s.service.GetProfile(ctx, id)
+	userID, _ := utils.GetUserIDFromCtx(ctx)
+	user, err := s.service.GetProfile(ctx, userID)
 	if err != nil {
 		if errors.Is(err, constants.ErrUserNotFound) {
 			sendErrorResponse(w, http.StatusNotFound, fmt.Sprintf("user not found"))
@@ -48,6 +51,40 @@ func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Email:      user.Email,
 		Name:       toString(user.Name),
 		Imageuri:   toString(user.Imageuri),
+	}
+	sendResponse(w, http.StatusOK, resp)
+}
+
+func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req PatchUserRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Println("invalid patch request")
+		sendErrorResponse(w, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	userID, _ := utils.GetUserIDFromCtx(ctx)
+	params := model.PatchUserModel{
+		Preference: req.Preference,
+		Weightunit: req.Weightunit,
+		Heightunit: req.Heightunit,
+		Weight:     req.Weight,
+		Height:     req.Height,
+		Name:       req.Name,
+		Imageuri:   req.Imageuri,
+	}
+	update, err := s.service.PatchProfile(ctx, userID, params)
+
+	resp := PatchProfileResponse{
+		Preference: toString(update.Preference),
+		Weightunit: toString(update.WeightUnit),
+		Heightunit: toString(update.HeightUnit),
+		Weight:     toInt(update.Weight),
+		Height:     toInt(update.Height),
+		Name:       toString(update.Name),
+		Imageuri:   toString(update.ImageUri),
 	}
 	sendResponse(w, http.StatusOK, resp)
 }

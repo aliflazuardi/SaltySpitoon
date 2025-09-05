@@ -15,6 +15,7 @@ type Repository interface {
 	SelectUserByEmail(ctx context.Context, email string) (repository.SelectUserByEmailRow, error)
 	CreateUser(ctx context.Context, arg repository.CreateUserParams) (int64, error)
 	SelectProfileById(ctx context.Context, id int64) (repository.SelectProfileByIdRow, error)
+	PatchProfileById(ctx context.Context, params repository.PatchProfileByIdParams) error
 
 	// Activity
 	CreateActivity(ctx context.Context, arg repository.CreateActivityParams) (repository.Activity, error)
