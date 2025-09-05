@@ -19,6 +19,7 @@ type Repository interface {
 	CreateActivity(ctx context.Context, arg repository.CreateActivityParams) (repository.Activity, error)
 	DeleteActivity(ctx context.Context, id int64) (int64, error)
 	PatchActivity(ctx context.Context, arg repository.PatchActivityParams) (repository.PatchActivityRow, error)
+	GetPaginatedActivity(ctx context.Context, arg repository.GetPaginatedActivityParams) ([]repository.GetPaginatedActivityRow, error)
 }
 
 func New(repository Repository) *Service {

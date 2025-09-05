@@ -62,6 +62,83 @@ func (q *Queries) DeleteActivity(ctx context.Context, id int64) (int64, error) {
 	return result.RowsAffected()
 }
 
+const getPaginatedActivity = `-- name: GetPaginatedActivity :many
+SELECT 
+    id, 
+    activity_type, 
+    done_at, 
+    duration_minutes, 
+    calories_burned, 
+    created_at
+FROM activities
+WHERE user_id = $1
+  AND ($2 IS NULL OR activity_type = $2)
+  AND ($3 IS NULL OR done_at >= $3)
+  AND ($4 IS NULL OR done_at <= $4)
+  AND ($5 IS NULL OR calories_burned >= $5)
+  AND ($6 IS NULL OR calories_burned <= $6)
+LIMIT $7 OFFSET $8
+`
+
+type GetPaginatedActivityParams struct {
+	UserID  int64
+	Column2 interface{}
+	Column3 interface{}
+	Column4 interface{}
+	Column5 interface{}
+	Column6 interface{}
+	Limit   int32
+	Offset  int32
+}
+
+type GetPaginatedActivityRow struct {
+	ID              int64
+	ActivityType    string
+	DoneAt          time.Time
+	DurationMinutes int32
+	CaloriesBurned  int32
+	CreatedAt       sql.NullTime
+}
+
+func (q *Queries) GetPaginatedActivity(ctx context.Context, arg GetPaginatedActivityParams) ([]GetPaginatedActivityRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPaginatedActivity,
+		arg.UserID,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
+		arg.Column5,
+		arg.Column6,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPaginatedActivityRow
+	for rows.Next() {
+		var i GetPaginatedActivityRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ActivityType,
+			&i.DoneAt,
+			&i.DurationMinutes,
+			&i.CaloriesBurned,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const patchActivity = `-- name: PatchActivity :one
 UPDATE activities
 SET

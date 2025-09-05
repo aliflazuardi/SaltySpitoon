@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -50,9 +51,9 @@ func (s *Service) DeleteActivity(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchActivityRequest) (repository.PatchActivityRow, error) {
+func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchActivityRequest) (server.PatchActivityResponse, error) {
 	if req.DurationInMinutes != nil && *req.DurationInMinutes < 1 {
-		return repository.PatchActivityRow{}, fmt.Errorf("durationInMinutes must be >= 1")
+		return server.PatchActivityResponse{}, fmt.Errorf("durationInMinutes must be >= 1")
 	}
 
 	var calories *int
@@ -65,7 +66,7 @@ func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchA
 
 	doneAt, err := utils.ToNullTimeFromString(req.DoneAt)
 	if err != nil {
-		return repository.PatchActivityRow{}, fmt.Errorf("invalid doneAt format, must be ISO8601")
+		return server.PatchActivityResponse{}, fmt.Errorf("invalid doneAt format, must be ISO8601")
 	}
 
 	row, err := s.repository.PatchActivity(ctx, repository.PatchActivityParams{
@@ -77,10 +78,53 @@ func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchA
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return repository.PatchActivityRow{}, sql.ErrNoRows
+			return server.PatchActivityResponse{}, sql.ErrNoRows
 		}
-		return repository.PatchActivityRow{}, err
+		return server.PatchActivityResponse{}, err
 	}
 
-	return row, nil
+	resp := server.PatchActivityResponse{
+		ActivityID:        strconv.Itoa(int(row.ID)),
+		ActivityType:      row.ActivityType,
+		DoneAt:            row.DoneAt.Format(time.RFC3339Nano),
+		DurationInMinutes: int(row.DurationMinutes),
+		CaloriesBurned:    int(row.CaloriesBurned),
+		CreatedAt:         utils.NullTimeToString(row.CreatedAt),
+		UpdatedAt:         utils.NullTimeToString(row.UpdatedAt),
+	}
+	return resp, nil
+}
+
+func (s *Service) GetPaginatedActivity(ctx context.Context, userId int64, req server.GetPaginatedActivityRequest) ([]server.GetPaginatedActivityResponse, error) {
+	rows, err := s.repository.GetPaginatedActivity(ctx, repository.GetPaginatedActivityParams{
+		UserID:  userId,
+		Column2: req.ActivityType,
+		Column3: req.DoneAtFrom,
+		Column4: req.DoneAtTo,
+		Column5: req.CaloriesBurnedMin,
+		Column6: req.CaloriesBurnedMax,
+		Limit:   int32(req.Limit),
+		Offset:  int32(req.Offset),
+	})
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []server.GetPaginatedActivityResponse{}, sql.ErrNoRows
+		}
+		return []server.GetPaginatedActivityResponse{}, err
+	}
+
+	activities := make([]server.GetPaginatedActivityResponse, len(rows))
+	for i, row := range rows {
+		activities[i] = server.GetPaginatedActivityResponse{
+			ActivityID:        row.ID,
+			ActivityType:      row.ActivityType,
+			DoneAt:            utils.NullTimeToString(row.CreatedAt),
+			DurationInMinutes: int(row.DurationMinutes),
+			CaloriesBurned:    int(row.CaloriesBurned),
+			CreatedAt:         utils.NullTimeToString(row.CreatedAt),
+		}
+	}
+
+	return activities, nil
 }
