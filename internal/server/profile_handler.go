@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func toString(ns sql.NullString) string {
@@ -54,16 +55,46 @@ func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
 	var req PatchUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		log.Println("invalid patch request: %s\n", err.Error())
+		log.Printf("invalid payload: %s\n", err.Error())
 		sendErrorResponse(w, http.StatusBadRequest, "invalid request")
 		return
 	}
 
 	err = s.validator.Struct(req)
 	if err != nil {
-		log.Printf("invalid patch request: %s\n", err.Error())
+		log.Printf("invalid vaidator: %s\n", err.Error())
 		sendErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	if req.Imageuri != nil {
+		strUri := *req.Imageuri
+		log.Printf("struri %s\n", strUri)
+		if strUri == "" {
+			log.Printf("invalid validator")
+			sendErrorResponse(w, http.StatusBadRequest, "bad request")
+			return
+		}
+		if !strings.Contains(strUri, ".com") &&
+			!strings.Contains(strUri, ".org") &&
+			!strings.Contains(strUri, ".net") &&
+			!strings.Contains(strUri, ".io") &&
+			!strings.Contains(strUri, ".co") &&
+			!strings.Contains(strUri, ".xyz") {
+			log.Printf("invalid validator")
+			sendErrorResponse(w, http.StatusBadRequest, "bad request")
+			return
+		}
+	}
+
+	if req.Name != nil {
+		strName := *req.Name
+		log.Printf("strname %s\n", strName)
+		if strName == "" {
+			log.Printf("invalid validator name")
+			sendErrorResponse(w, http.StatusBadRequest, "bad request")
+			return
+		}
 	}
 
 	userID, _ := utils.GetUserIDFromCtx(ctx)
