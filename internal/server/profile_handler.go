@@ -1,13 +1,10 @@
 package server
 
 import (
-	"SaltySpitoon/internal/constants"
 	"SaltySpitoon/internal/model"
 	"SaltySpitoon/internal/utils"
 	"database/sql"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -34,9 +31,6 @@ func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 	userID, _ := utils.GetUserIDFromCtx(ctx)
 	user, err := s.service.GetProfile(ctx, userID)
 	if err != nil {
-		if errors.Is(err, constants.ErrUserNotFound) {
-			sendErrorResponse(w, http.StatusNotFound, fmt.Sprintf("user not found"))
-		}
 		log.Println("user not found")
 		sendErrorResponse(w, http.StatusBadRequest, "invalid request")
 		return
