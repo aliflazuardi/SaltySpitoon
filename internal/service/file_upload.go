@@ -1,6 +1,8 @@
 package service
 
 import (
+	"SaltySpitoon/internal/constants"
+	"SaltySpitoon/internal/utils"
 	"context"
 	"fmt"
 	"io"
@@ -11,9 +13,17 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) UploadFile(ctx context.Context, file io.Reader, filename string) (string, error) {
-	bucket := "images" // note: should not be hardcoded
+func (s *Service) UploadFile(ctx context.Context, file io.Reader, filename string, sizeInBytes int64) (string, error) {
+	if sizeInBytes > constants.MaxUploadSizeInBytes {
+		return "", constants.ErrMaximumFileSize
+	}
+	if err := utils.ValidateFileExtensions(filename, constants.AllowedExtensions); err != nil {
+		return "", constants.ErrInvalidFileType
+	}
+
+	bucket := constants.BucketName
 	identifier := uuid.NewString()
+
 	filepath := filepath.Join("/tmp", fmt.Sprintf("%s_%s", identifier, filename))
 	tempFile, err := os.OpenFile(filepath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {

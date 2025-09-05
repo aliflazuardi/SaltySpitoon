@@ -22,7 +22,7 @@ type Service interface {
 	CreateActivity(ctx context.Context, userID int64, req CreateActivityRequest) (repository.Activity, error)
 	DeleteActivity(ctx context.Context, id int64) error
 	PatchActivity(ctx context.Context, id int64, req PatchActivityRequest) (PatchActivityResponse, error)
-	UploadFile(ctx context.Context, file io.Reader, filename string) (string, error)
+	UploadFile(ctx context.Context, file io.Reader, filename string, sizeInBytes int64) (string, error)
 }
 
 type Server struct {
