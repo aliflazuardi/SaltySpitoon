@@ -50,9 +50,9 @@ func (s *Service) DeleteActivity(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchActivityRequest) (server.PatchActivityResponse, error) {
+func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchActivityRequest) (repository.PatchActivityRow, error) {
 	if req.DurationInMinutes != nil && *req.DurationInMinutes < 1 {
-		return server.PatchActivityResponse{}, fmt.Errorf("durationInMinutes must be >= 1")
+		return repository.PatchActivityRow{}, fmt.Errorf("durationInMinutes must be >= 1")
 	}
 
 	var calories *int
@@ -61,11 +61,11 @@ func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchA
 			c := met * (*req.DurationInMinutes)
 			calories = &c
 		}
-
 	}
+
 	doneAt, err := utils.ToNullTimeFromString(req.DoneAt)
 	if err != nil {
-		return server.PatchActivityResponse{}, fmt.Errorf("invalid doneAt format, must be ISO8601")
+		return repository.PatchActivityRow{}, fmt.Errorf("invalid doneAt format, must be ISO8601")
 	}
 
 	row, err := s.repository.PatchActivity(ctx, repository.PatchActivityParams{
@@ -77,18 +77,10 @@ func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchA
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return server.PatchActivityResponse{}, sql.ErrNoRows
+			return repository.PatchActivityRow{}, sql.ErrNoRows
 		}
-		return server.PatchActivityResponse{}, err
+		return repository.PatchActivityRow{}, err
 	}
 
-	return server.PatchActivityResponse{
-		ActivityID:        row.ID,
-		ActivityType:      row.ActivityType,
-		DoneAt:            row.DoneAt.Format(time.RFC3339),
-		DurationInMinutes: int(row.DurationMinutes),
-		CaloriesBurned:    int(row.CaloriesBurned),
-		CreatedAt:         utils.NullTimeToString(row.CreatedAt),
-		UpdatedAt:         utils.NullTimeToString(row.UpdatedAt),
-	}, nil
+	return row, nil
 }

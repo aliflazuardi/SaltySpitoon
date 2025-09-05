@@ -42,7 +42,7 @@ type RegisterResponse struct {
 }
 
 type CreateActivityResponse struct {
-	ActivityID        int64  `json:"activityId"`
+	ActivityID        string `json:"activityId"`
 	ActivityType      string `json:"activityType"`
 	DoneAt            string `json:"doneAt"`
 	DurationInMinutes int32  `json:"durationInMinutes"`
@@ -56,7 +56,7 @@ type DeleteActivityResponse struct {
 }
 
 type PatchActivityResponse struct {
-	ActivityID        int64  `json:"activityId"`
+	ActivityID        string `json:"activityId"`
 	ActivityType      string `json:"activityType"`
 	DoneAt            string `json:"doneAt"`
 	DurationInMinutes int    `json:"durationInMinutes"`
