@@ -66,7 +66,7 @@ type PatchActivityResponse struct {
 }
 
 type GetPaginatedActivityResponse struct {
-	ActivityID        int64  `json:"activityId"`
+	ActivityID        string `json:"activityId"`
 	ActivityType      string `json:"activityType"`
 	DoneAt            string `json:"doneAt"`
 	DurationInMinutes int    `json:"durationInMinutes"`

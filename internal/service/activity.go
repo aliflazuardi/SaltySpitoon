@@ -117,7 +117,7 @@ func (s *Service) GetPaginatedActivity(ctx context.Context, userId int64, req se
 	activities := make([]server.GetPaginatedActivityResponse, len(rows))
 	for i, row := range rows {
 		activities[i] = server.GetPaginatedActivityResponse{
-			ActivityID:        row.ID,
+			ActivityID:        fmt.Sprint(row.ID),
 			ActivityType:      row.ActivityType,
 			DoneAt:            utils.NullTimeToString(row.CreatedAt),
 			DurationInMinutes: int(row.DurationMinutes),
