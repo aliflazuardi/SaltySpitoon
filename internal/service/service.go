@@ -7,6 +7,7 @@ import (
 
 type Service struct {
 	repository Repository
+	storage    Storage
 }
 
 // note: not ideal, might need adapter layer because return type is defined in the repository package
@@ -25,8 +26,9 @@ type Storage interface {
 	UploadFile(ctx context.Context, bucket, localPath, remotePath string) (string, error)
 }
 
-func New(repository Repository) *Service {
+func New(repository Repository, storage Storage) *Service {
 	return &Service{
 		repository: repository,
+		storage:    storage,
 	}
 }

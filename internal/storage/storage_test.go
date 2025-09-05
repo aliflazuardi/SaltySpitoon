@@ -10,8 +10,8 @@ import (
 func setupTestMinioStorage(t *testing.T) *MinioStorage {
 	t.Helper()
 	s3Endpoint := "localhost:9000"
-	s3AccessKeyID := "salty-spitoon"
-	s3SecretAccessKey := "@salty-spitoon"
+	s3AccessKeyID := "team-solid"
+	s3SecretAccessKey := "@team-solid"
 	return New(s3Endpoint, s3AccessKeyID, s3SecretAccessKey)
 }
 
@@ -23,8 +23,8 @@ func TestStorage(t *testing.T) {
 		localPath := "testdata/sample.jpg"
 		remotePath := "sample.jpg"
 
-		location, err := minioStorage.UploadFile(context.TODO(), bucket, localPath, remotePath)
+		url, err := minioStorage.UploadFile(context.TODO(), bucket, localPath, remotePath)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, location)
+		assert.NotEmpty(t, url)
 	})
 }

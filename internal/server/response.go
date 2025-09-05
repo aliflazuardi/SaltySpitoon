@@ -64,3 +64,7 @@ type PatchActivityResponse struct {
 	CreatedAt         string `json:"createdAt"`
 	UpdatedAt         string `json:"updatedAt"`
 }
+
+type FileUploadResponse struct {
+	Uri string `json:"uri"`
+}

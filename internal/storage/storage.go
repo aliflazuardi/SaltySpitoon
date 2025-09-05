@@ -4,15 +4,16 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 var (
-	s3AccessKeyID     = os.Getenv("S3_ACCESS_KEY_ID")
-	s3SecretAccessKey = os.Getenv("S3_SECRET_ACCESS_KEY")
-	s3Endpoint        = os.Getenv("S3_ENDPOINT")
+	S3AccessKeyID     = os.Getenv("S3_ACCESS_KEY_ID")
+	S3SecretAccessKey = os.Getenv("S3_SECRET_ACCESS_KEY")
+	S3Endpoint        = os.Getenv("S3_ENDPOINT")
 )
 
 type MinioStorage struct {
@@ -38,9 +39,14 @@ func New(
 }
 
 func (s *MinioStorage) UploadFile(ctx context.Context, bucket, localPath, remotePath string) (string, error) {
-	info, err := s.client.FPutObject(ctx, bucket, remotePath, localPath, minio.PutObjectOptions{})
+	_, err := s.client.FPutObject(ctx, bucket, remotePath, localPath, minio.PutObjectOptions{})
 	if err != nil {
 		return "", err
 	}
-	return info.Key, nil
+
+	presignedURL, err := s.client.PresignedGetObject(ctx, bucket, remotePath, 10*time.Minute, s.client.EndpointURL().Query())
+	if err != nil {
+		return "", err
+	}
+	return presignedURL.String(), nil
 }
