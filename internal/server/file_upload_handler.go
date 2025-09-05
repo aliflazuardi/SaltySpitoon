@@ -3,6 +3,7 @@ package server
 import (
 	"SaltySpitoon/internal/constants"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -29,10 +30,13 @@ func (s *Server) fileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case constants.ErrMaximumFileSize:
+			log.Println("invalid file size")
 			sendErrorResponse(w, http.StatusBadRequest, err.Error())
 		case constants.ErrInvalidFileType:
+			log.Println("invalid file type")
 			sendErrorResponse(w, http.StatusBadRequest, err.Error())
 		default:
+			log.Printf("internal server error: %v", err)
 			sendErrorResponse(w, http.StatusInternalServerError, err.Error())
 		}
 		return
