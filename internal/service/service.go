@@ -15,11 +15,14 @@ type Repository interface {
 	// User
 	SelectUserByEmail(ctx context.Context, email string) (repository.SelectUserByEmailRow, error)
 	CreateUser(ctx context.Context, arg repository.CreateUserParams) (int64, error)
+	SelectProfileById(ctx context.Context, id int64) (repository.SelectProfileByIdRow, error)
+	PatchProfileById(ctx context.Context, params repository.PatchProfileByIdParams) error
 
 	// Activity
 	CreateActivity(ctx context.Context, arg repository.CreateActivityParams) (repository.Activity, error)
 	DeleteActivity(ctx context.Context, id int64) (int64, error)
 	PatchActivity(ctx context.Context, arg repository.PatchActivityParams) (repository.PatchActivityRow, error)
+	GetPaginatedActivity(ctx context.Context, arg repository.GetPaginatedActivityParams) ([]repository.GetPaginatedActivityRow, error)
 }
 
 type Storage interface {

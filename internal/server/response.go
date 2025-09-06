@@ -42,7 +42,7 @@ type RegisterResponse struct {
 }
 
 type CreateActivityResponse struct {
-	ActivityID        int64  `json:"activityId"`
+	ActivityID        string `json:"activityId"`
 	ActivityType      string `json:"activityType"`
 	DoneAt            string `json:"doneAt"`
 	DurationInMinutes int32  `json:"durationInMinutes"`
@@ -56,7 +56,7 @@ type DeleteActivityResponse struct {
 }
 
 type PatchActivityResponse struct {
-	ActivityID        int64  `json:"activityId"`
+	ActivityID        string `json:"activityId"`
 	ActivityType      string `json:"activityType"`
 	DoneAt            string `json:"doneAt"`
 	DurationInMinutes int    `json:"durationInMinutes"`
@@ -67,4 +67,34 @@ type PatchActivityResponse struct {
 
 type FileUploadResponse struct {
 	Uri string `json:"uri"`
+}
+
+type GetPaginatedActivityResponse struct {
+	ActivityID        string `json:"activityId"`
+	ActivityType      string `json:"activityType"`
+	DoneAt            string `json:"doneAt"`
+	DurationInMinutes int    `json:"durationInMinutes"`
+	CaloriesBurned    int    `json:"caloriesBurned"`
+	CreatedAt         string `json:"createdAt"`
+}
+
+type GetProfileResponse struct {
+	Preference string `json:"preference"`
+	Weightunit string `json:"weightUnit"`
+	Heightunit string `json:"heightUnit"`
+	Weight     int    `json:"weight"`
+	Height     int    `json:"height"`
+	Email      string `json:"email"`
+	Name       string `json:"name"`
+	Imageuri   string `json:"imageUri"`
+}
+
+type PatchProfileResponse struct {
+	Preference string `json:"preference"`
+	Weightunit string `json:"weightUnit"`
+	Heightunit string `json:"heightUnit"`
+	Weight     int    `json:"weight"`
+	Height     int    `json:"height"`
+	Name       string `json:"name"`
+	Imageuri   string `json:"imageUri"`
 }

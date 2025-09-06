@@ -2,6 +2,7 @@ package service
 
 import (
 	"SaltySpitoon/internal/constants"
+	"SaltySpitoon/internal/model"
 	"SaltySpitoon/internal/repository"
 	"SaltySpitoon/internal/utils"
 	"context"
@@ -54,4 +55,35 @@ func (s *Service) Register(ctx context.Context, email string, password string) (
 		return "", err
 	}
 	return token, nil
+}
+
+func (s *Service) GetProfile(ctx context.Context, id int64) (repository.SelectProfileByIdRow, error) {
+	user, err := s.repository.SelectProfileById(ctx, id)
+	// wrong id, error id
+	if err != nil {
+		return repository.SelectProfileByIdRow{}, err
+	}
+
+	return user, nil
+}
+
+func (s *Service) PatchProfile(ctx context.Context, id int64, req model.PatchUserModel) (repository.PatchProfileByIdParams, error) {
+	params := repository.PatchProfileByIdParams{
+		ID:         id,
+		Preference: utils.ToNullString(req.Preference),
+		WeightUnit: utils.ToNullString(req.Weightunit),
+		HeightUnit: utils.ToNullString(req.Heightunit),
+		Weight:     utils.ToNullInt32(req.Weight),
+		Height:     utils.ToNullInt32(req.Height),
+		Name:       utils.ToNullString(req.Name),
+		ImageUri:   utils.ToNullString(req.Imageuri),
+	}
+
+	err := s.repository.PatchProfileById(ctx, params)
+	if err != nil {
+		return repository.PatchProfileByIdParams{}, err
+	}
+
+	// user, err := PatchProfile
+	return params, nil
 }

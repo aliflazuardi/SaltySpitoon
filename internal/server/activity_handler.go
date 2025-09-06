@@ -18,6 +18,12 @@ func (s *Server) createActivityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ct := r.Header.Get("Content-Type")
+	if ct == "" || !strings.HasPrefix(ct, "application/json") {
+		sendErrorResponse(w, http.StatusBadRequest, "invalid content type")
+		return
+	}
+
 	ctx := r.Context()
 	var req CreateActivityRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -36,8 +42,6 @@ func (s *Server) createActivityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// userID := int64(1)
-
 	activity, err := s.service.CreateActivity(ctx, userID, req)
 	if err != nil {
 		log.Println("failed to create activity:", err)
@@ -54,7 +58,7 @@ func (s *Server) createActivityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := CreateActivityResponse{
-		ActivityID:        activity.ID,
+		ActivityID:        strconv.Itoa(int(activity.ID)),
 		ActivityType:      activity.ActivityType,
 		DoneAt:            activity.DoneAt.Format(time.RFC3339),
 		DurationInMinutes: activity.DurationMinutes,
@@ -72,22 +76,19 @@ func (s *Server) deleteActivityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prefix := "/v1/activity/"
-	path := r.URL.Path
-	if len(path) <= len(prefix) {
-		sendErrorResponse(w, http.StatusBadRequest, "missing activityId")
+	idStr := strings.TrimPrefix(r.URL.Path, "/v1/activity/")
+	if idStr == "" {
+		sendErrorResponse(w, http.StatusNotFound, "activityId not found")
 		return
 	}
-
-	activityID := path[len(prefix):]
-	activityIDInt, err := strconv.Atoi(activityID)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, "invalid activityId")
+		sendErrorResponse(w, http.StatusNotFound, "activityId not found")
 		return
 	}
 
 	ctx := r.Context()
-	err = s.service.DeleteActivity(ctx, int64(activityIDInt))
+	err = s.service.DeleteActivity(ctx, int64(id))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			sendErrorResponse(w, http.StatusNotFound, "activityId not found")
@@ -108,36 +109,127 @@ func (s *Server) patchActivityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	const prefix = "/v1/activity/"
-	activityID := strings.TrimPrefix(r.URL.Path, prefix)
-	if activityID == "" {
-		sendErrorResponse(w, http.StatusBadRequest, "missing activityId")
+	if ct := r.Header.Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
+		sendErrorResponse(w, http.StatusBadRequest, "invalid content type")
 		return
 	}
-	activityIDInt, err := strconv.Atoi(activityID)
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/v1/activity/")
+	if idStr == "" {
+		sendErrorResponse(w, http.StatusNotFound, "activityId not found")
+		return
+	}
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, "invalid activityId")
+		sendErrorResponse(w, http.StatusNotFound, "activityId not found")
 		return
 	}
 
 	var req PatchActivityRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, "invalid json")
+		sendErrorResponse(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		sendErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	ctx := r.Context()
-	res, err := s.service.PatchActivity(ctx, int64(activityIDInt), req)
+	resp, err := s.service.PatchActivity(ctx, int64(id), req)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			sendErrorResponse(w, http.StatusNotFound, "activityId not found")
 		default:
-			log.Printf("failed to patch activity (id=%d): %v", activityIDInt, err)
+			log.Printf("failed to patch activity (id=%d): %v", id, err)
+			sendErrorResponse(w, http.StatusInternalServerError, "server error")
+		}
+		return
+	}
+
+	sendResponse(w, http.StatusOK, resp)
+}
+
+func (s *Server) getPaginatedActivityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		sendErrorResponse(w, http.StatusInternalServerError, "method not allowed")
+		return
+	}
+	defer r.Body.Close()
+
+	userID, ok := utils.GetUserIDFromCtx(r.Context())
+	if !ok {
+		sendErrorResponse(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	req := parseRequestActivityPaginatedParams(r)
+	ctx := r.Context()
+	res, err := s.service.GetPaginatedActivity(ctx, int64(userID), *req)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			sendErrorResponse(w, http.StatusInternalServerError, "activities this user is not found")
+		default:
+			log.Printf("failed to get user activitities (id=%d): %v", userID, err)
 			sendErrorResponse(w, http.StatusInternalServerError, "server error")
 		}
 		return
 	}
 
 	sendResponse(w, http.StatusOK, res)
+}
+
+func parseRequestActivityPaginatedParams(r *http.Request) *GetPaginatedActivityRequest {
+	req := &GetPaginatedActivityRequest{
+		Limit:  5,
+		Offset: 0,
+	}
+
+	query := r.URL.Query()
+	if limitStr := query.Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil && limit > 0 && limit <= 100 {
+			req.Limit = limit
+		}
+	}
+
+	if offsetStr := query.Get("offset"); offsetStr != "" {
+		if offset, err := strconv.Atoi(offsetStr); err == nil && offset >= 0 {
+			req.Offset = offset
+		}
+	}
+
+	if activityType := query.Get("activityType"); activityType != "" {
+		if utils.IsValidActivityType(activityType) {
+			req.ActivityType = activityType
+		}
+	}
+
+	if doneAtFromStr := query.Get("doneAtFrom"); doneAtFromStr != "" {
+		if doneAtFrom, err := utils.ParseISODate(doneAtFromStr); err == nil {
+			req.DoneAtFrom = &doneAtFrom
+		}
+	}
+
+	if doneAtToStr := query.Get("doneAtTo"); doneAtToStr != "" {
+		if doneAtTo, err := utils.ParseISODate(doneAtToStr); err == nil {
+			req.DoneAtTo = &doneAtTo
+		}
+	}
+
+	if caloriesMinStr := query.Get("caloriesBurnedMin"); caloriesMinStr != "" {
+		if caloriesMin, err := strconv.Atoi(caloriesMinStr); err == nil && caloriesMin >= 0 {
+			req.CaloriesBurnedMin = &caloriesMin
+		}
+	}
+
+	if caloriesMaxStr := query.Get("caloriesBurnedMax"); caloriesMaxStr != "" {
+		if caloriesMax, err := strconv.Atoi(caloriesMaxStr); err == nil && caloriesMax >= 0 {
+			req.CaloriesBurnedMax = &caloriesMax
+		}
+	}
+
+	return req
 }

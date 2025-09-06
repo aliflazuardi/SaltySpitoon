@@ -2,6 +2,7 @@ package server
 
 import (
 	"SaltySpitoon/internal/constants"
+	"SaltySpitoon/internal/model"
 	"SaltySpitoon/internal/repository"
 	"context"
 	"fmt"
@@ -19,10 +20,13 @@ import (
 type Service interface {
 	Login(ctx context.Context, email string, password string) (string, error)
 	Register(ctx context.Context, email string, password string) (string, error)
+	GetProfile(ctx context.Context, id int64) (repository.SelectProfileByIdRow, error)
+	PatchProfile(ctx context.Context, id int64, req model.PatchUserModel) (repository.PatchProfileByIdParams, error)
 	CreateActivity(ctx context.Context, userID int64, req CreateActivityRequest) (repository.Activity, error)
 	DeleteActivity(ctx context.Context, id int64) error
 	PatchActivity(ctx context.Context, id int64, req PatchActivityRequest) (PatchActivityResponse, error)
 	UploadFile(ctx context.Context, file io.Reader, filename string, sizeInBytes int64) (string, error)
+	GetPaginatedActivity(ctx context.Context, userId int64, req GetPaginatedActivityRequest) ([]GetPaginatedActivityResponse, error)
 }
 
 type Server struct {

@@ -9,7 +9,19 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
+)
+
+const (
+	NoFilterString      = ""
+	NoFilterInt         = -1
+	NoFilterCaloriesMax = 999999 // High number for max calories
+)
+
+var (
+	NoFilterDateFrom = time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
+	NoFilterDateTo   = time.Date(2100, 1, 1, 0, 0, 0, 0, time.UTC)
 )
 
 func (s *Service) CreateActivity(ctx context.Context, userID int64, req server.CreateActivityRequest) (repository.Activity, error) {
@@ -61,8 +73,8 @@ func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchA
 			c := met * (*req.DurationInMinutes)
 			calories = &c
 		}
-
 	}
+
 	doneAt, err := utils.ToNullTimeFromString(req.DoneAt)
 	if err != nil {
 		return server.PatchActivityResponse{}, fmt.Errorf("invalid doneAt format, must be ISO8601")
@@ -82,13 +94,80 @@ func (s *Service) PatchActivity(ctx context.Context, id int64, req server.PatchA
 		return server.PatchActivityResponse{}, err
 	}
 
-	return server.PatchActivityResponse{
-		ActivityID:        row.ID,
+	resp := server.PatchActivityResponse{
+		ActivityID:        strconv.Itoa(int(row.ID)),
 		ActivityType:      row.ActivityType,
-		DoneAt:            row.DoneAt.Format(time.RFC3339),
+		DoneAt:            row.DoneAt.Format(time.RFC3339Nano),
 		DurationInMinutes: int(row.DurationMinutes),
 		CaloriesBurned:    int(row.CaloriesBurned),
 		CreatedAt:         utils.NullTimeToString(row.CreatedAt),
 		UpdatedAt:         utils.NullTimeToString(row.UpdatedAt),
-	}, nil
+	}
+	return resp, nil
+}
+
+func (s *Service) GetPaginatedActivity(ctx context.Context, userId int64, req server.GetPaginatedActivityRequest) ([]server.GetPaginatedActivityResponse, error) {
+	params := parsePaginatedParams(req, userId)
+	rows, err := s.repository.GetPaginatedActivity(ctx, params)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []server.GetPaginatedActivityResponse{}, sql.ErrNoRows
+		}
+		return []server.GetPaginatedActivityResponse{}, err
+	}
+
+	activities := make([]server.GetPaginatedActivityResponse, len(rows))
+	for i, row := range rows {
+		activities[i] = server.GetPaginatedActivityResponse{
+			ActivityID:        fmt.Sprint(row.ID),
+			ActivityType:      row.ActivityType,
+			DoneAt:            utils.NullTimeToString(row.CreatedAt),
+			DurationInMinutes: int(row.DurationMinutes),
+			CaloriesBurned:    int(row.CaloriesBurned),
+			CreatedAt:         utils.NullTimeToString(row.CreatedAt),
+		}
+	}
+
+	return activities, nil
+}
+
+func parsePaginatedParams(req server.GetPaginatedActivityRequest, userId int64) repository.GetPaginatedActivityParams {
+	params := repository.GetPaginatedActivityParams{
+		UserID: userId,
+		Limit:  int32(req.Limit),
+		Offset: int32(req.Offset),
+	}
+
+	if req.ActivityType != "" {
+		params.Column2 = req.ActivityType
+	} else {
+		params.Column2 = NoFilterString
+	}
+
+	if req.DoneAtFrom != nil {
+		params.Column3 = *req.DoneAtFrom
+	} else {
+		params.Column3 = NoFilterDateFrom
+	}
+
+	if req.DoneAtTo != nil {
+		params.Column4 = *req.DoneAtTo
+	} else {
+		params.Column4 = NoFilterDateTo
+	}
+
+	if req.CaloriesBurnedMin != nil {
+		params.Column5 = int32(*req.CaloriesBurnedMin)
+	} else {
+		params.Column5 = NoFilterInt
+	}
+
+	if req.CaloriesBurnedMax != nil {
+		params.Column6 = int32(*req.CaloriesBurnedMax)
+	} else {
+		params.Column6 = NoFilterCaloriesMax
+	}
+
+	return params
 }
