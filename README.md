@@ -109,3 +109,18 @@ Create your .env file and use the .env.sample file as reference
 ## Create SQL query
 
 Write your query in db/sql/query directory and run `make db-generate-sql`
+
+## Setup Minio ENV
+
+```bash
+  export S3_ACCESS_KEY_ID=team-solid
+  export S3_SECRET_ACCESS_KEY=@team-solid
+  export S3_ENDPOINT=localhost:9000
+```
+
+## Access Minio
+Access `minio console` from your browser
+- minio console: `http://localhost:9001`
+  - username: `team-solid`
+  - password: `@team-solid`
+- minio API: `http://localhost:9000`

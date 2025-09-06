@@ -65,6 +65,10 @@ type PatchActivityResponse struct {
 	UpdatedAt         string `json:"updatedAt"`
 }
 
+type FileUploadResponse struct {
+	Uri string `json:"uri"`
+}
+
 type GetPaginatedActivityResponse struct {
 	ActivityID        string `json:"activityId"`
 	ActivityType      string `json:"activityType"`

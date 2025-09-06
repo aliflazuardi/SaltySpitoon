@@ -22,6 +22,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	mux.HandleFunc("PATCH /v1/activity/", s.patchActivityHandler)
 	mux.HandleFunc("GET /v1/activity", s.getPaginatedActivityHandler)
 
+	mux.HandleFunc("POST /v1/file", s.fileUploadHandler)
 	return s.authMiddleware(mux)
 }
 
