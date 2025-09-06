@@ -8,8 +8,8 @@ CREATE TABLE users (
     preference VARCHAR(100),
     weight_unit VARCHAR(20),
     height_unit VARCHAR(20),
-    weight NUMERIC(6,2),
-    height NUMERIC(6,2),
+    weight INTEGER,
+    height INTEGER,
     image_uri TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()

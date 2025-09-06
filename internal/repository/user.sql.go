@@ -46,8 +46,8 @@ type PatchProfileByIdParams struct {
 	Preference sql.NullString
 	WeightUnit sql.NullString
 	HeightUnit sql.NullString
-	Weight     sql.NullString
-	Height     sql.NullString
+	Weight     sql.NullInt32
+	Height     sql.NullInt32
 	Name       sql.NullString
 	ImageUri   sql.NullString
 }
@@ -74,8 +74,8 @@ type SelectProfileByIdRow struct {
 	Preference sql.NullString
 	Weightunit sql.NullString
 	Heightunit sql.NullString
-	Weight     sql.NullString
-	Height     sql.NullString
+	Weight     sql.NullInt32
+	Height     sql.NullInt32
 	Email      string
 	Name       sql.NullString
 	Imageuri   sql.NullString

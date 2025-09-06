@@ -78,8 +78,8 @@ type GetProfileResponse struct {
 	Preference string `json:"preference"`
 	Weightunit string `json:"weightUnit"`
 	Heightunit string `json:"heightUnit"`
-	Weight     int64  `json:"weight"`
-	Height     int64  `json:"height"`
+	Weight     int    `json:"weight"`
+	Height     int    `json:"height"`
 	Email      string `json:"email"`
 	Name       string `json:"name"`
 	Imageuri   string `json:"imageUri"`
@@ -89,8 +89,8 @@ type PatchProfileResponse struct {
 	Preference string `json:"preference"`
 	Weightunit string `json:"weightUnit"`
 	Heightunit string `json:"heightUnit"`
-	Weight     int64  `json:"weight"`
-	Height     int64  `json:"height"`
+	Weight     int    `json:"weight"`
+	Height     int    `json:"height"`
 	Name       string `json:"name"`
 	Imageuri   string `json:"imageUri"`
 }

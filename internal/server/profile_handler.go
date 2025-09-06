@@ -8,25 +8,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
-
-func toString(ns sql.NullString) string {
-	if ns.Valid {
-		return ns.String
-	}
-	return ""
-}
-
-func toInt(ni sql.NullString) int64 {
-	if ni.Valid {
-		if i, err := strconv.ParseInt(ni.String, 10, 64); err == nil {
-			return i
-		}
-	}
-	return 0
-}
 
 func rawJSONHasField(body io.ReadCloser, field string) bool {
 	defer body.Close()
@@ -43,7 +26,7 @@ func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 	userID, _ := utils.GetUserIDFromCtx(ctx)
 	user, err := s.service.GetProfile(ctx, userID)
 	if err != nil {
-		log.Println("user not found")
+		log.Println("user not found", err.Error())
 		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
@@ -52,8 +35,8 @@ func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Preference: toString(user.Preference),
 		Weightunit: toString(user.Weightunit),
 		Heightunit: toString(user.Heightunit),
-		Weight:     toInt(user.Weight),
-		Height:     toInt(user.Height),
+		Weight:     int32toInt(user.Weight),
+		Height:     int32toInt(user.Height),
 		Email:      user.Email,
 		Name:       toString(user.Name),
 		Imageuri:   toString(user.Imageuri),
@@ -63,6 +46,13 @@ func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	contentTypeHeader := r.Header.Get("Content-Type")
+	if !strings.EqualFold(contentTypeHeader, "application/json") {
+		sendErrorResponse(w, http.StatusBadRequest, "invalid request")
+		return
+	}
+
 	var req PatchUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -132,9 +122,8 @@ func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Imageuri:   req.Imageuri,
 	}
 	update, err := s.service.PatchProfile(ctx, userID, params)
-
 	if err != nil {
-		log.Println("error patch user: %s\n", err.Error())
+		log.Printf("error patch user: %s\n", err.Error())
 		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
@@ -143,8 +132,8 @@ func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Preference: toString(update.Preference),
 		Weightunit: toString(update.WeightUnit),
 		Heightunit: toString(update.HeightUnit),
-		Weight:     toInt(update.Weight),
-		Height:     toInt(update.Height),
+		Weight:     int32toInt(update.Weight),
+		Height:     int32toInt(update.Height),
 		Name:       toString(update.Name),
 		Imageuri:   toString(update.ImageUri),
 	}

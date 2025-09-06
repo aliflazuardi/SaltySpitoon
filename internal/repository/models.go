@@ -28,8 +28,8 @@ type User struct {
 	Preference   sql.NullString
 	WeightUnit   sql.NullString
 	HeightUnit   sql.NullString
-	Weight       sql.NullString
-	Height       sql.NullString
+	Weight       sql.NullInt32
+	Height       sql.NullInt32
 	ImageUri     sql.NullString
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
