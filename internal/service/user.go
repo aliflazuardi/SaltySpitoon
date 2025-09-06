@@ -1,12 +1,14 @@
 package service
 
 import (
+	"SaltySpitoon/internal/constants"
 	"SaltySpitoon/internal/model"
 	"SaltySpitoon/internal/repository"
 	"SaltySpitoon/internal/utils"
 	"context"
 	"database/sql"
 	"strconv"
+	"strings"
 )
 
 func (s *Service) Login(ctx context.Context, email string, password string) (string, error) {
@@ -86,6 +88,7 @@ func PtrInt64ToNullString(i *int64) sql.NullString {
 		Valid:  true,
 	}
 }
+
 func (s *Service) PatchProfile(ctx context.Context, id int64, req model.PatchUserModel) (repository.PatchProfileByIdParams, error) {
 	params := repository.PatchProfileByIdParams{
 		ID:         id,
