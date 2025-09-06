@@ -17,6 +17,16 @@ type RegisterRequest struct {
 	Password string `json:"password" validate:"required,min=8,max=32"`
 }
 
+type PatchUserRequest struct {
+	Preference *string `json:"preference,omitempty" validate:"required,oneof=CARDIO WEIGHT"`
+	Weightunit *string `json:"weightUnit,omitempty" validate:"required,oneof=KG LBS"`
+	Heightunit *string `json:"heightUnit,omitempty" validate:"required,oneof=CM INCH"`
+	Weight     *int    `json:"weight,omitempty" validate:"required,gte=10,lte=1000"`
+	Height     *int    `json:"height,omitempty" validate:"required,gte=3,lte=250"`
+	Name       *string `json:"name,omitempty" validate:"min=2,max=60"`
+	Imageuri   *string `json:"imageUri,omitempty" validate:"uri"`
+}
+
 type CreateActivityRequest struct {
 	ActivityType      string `json:"activityType" validate:"required,activity_type_enum"`
 	DoneAt            string `json:"doneAt" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`

@@ -3,6 +3,7 @@ package main
 import (
 	"SaltySpitoon/internal/database"
 	"SaltySpitoon/internal/repository"
+	"SaltySpitoon/internal/server"
 	"SaltySpitoon/internal/service"
 	"context"
 	"fmt"
@@ -11,8 +12,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	"SaltySpitoon/internal/server"
 )
 
 func gracefulShutdown(apiServer *http.Server, done chan bool) {

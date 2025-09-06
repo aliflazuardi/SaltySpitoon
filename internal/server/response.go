@@ -73,3 +73,24 @@ type GetPaginatedActivityResponse struct {
 	CaloriesBurned    int    `json:"caloriesBurned"`
 	CreatedAt         string `json:"createdAt"`
 }
+
+type GetProfileResponse struct {
+	Preference string `json:"preference"`
+	Weightunit string `json:"weightUnit"`
+	Heightunit string `json:"heightUnit"`
+	Weight     int    `json:"weight"`
+	Height     int    `json:"height"`
+	Email      string `json:"email"`
+	Name       string `json:"name"`
+	Imageuri   string `json:"imageUri"`
+}
+
+type PatchProfileResponse struct {
+	Preference string `json:"preference"`
+	Weightunit string `json:"weightUnit"`
+	Heightunit string `json:"heightUnit"`
+	Weight     int    `json:"weight"`
+	Height     int    `json:"height"`
+	Name       string `json:"name"`
+	Imageuri   string `json:"imageUri"`
+}
