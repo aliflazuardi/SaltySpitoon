@@ -5,6 +5,7 @@ import (
 	"SaltySpitoon/internal/utils"
 	"database/sql"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -25,6 +26,16 @@ func toInt(ni sql.NullString) int64 {
 		}
 	}
 	return 0
+}
+
+func rawJSONHasField(body io.ReadCloser, field string) bool {
+	defer body.Close()
+	var raw map[string]json.RawMessage
+	if err := json.NewDecoder(body).Decode(&raw); err != nil {
+		return false
+	}
+	_, ok := raw[field]
+	return ok
 }
 
 func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +78,12 @@ func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if rawJSONHasField(r.Body, "imageUri") && req.Imageuri == nil {
+		log.Printf("invalid: name explicitly null")
+		sendErrorResponse(w, http.StatusBadRequest, "name must not be null")
+		return
+	}
+
 	if req.Imageuri != nil {
 		strUri := *req.Imageuri
 		log.Printf("struri %s\n", strUri)
@@ -85,6 +102,13 @@ func (s *Server) patchProfileHandler(w http.ResponseWriter, r *http.Request) {
 			sendErrorResponse(w, http.StatusBadRequest, "bad request")
 			return
 		}
+	}
+
+	// Catch case where name is explicitly set to null (i.e., req.Name == nil, but field present)
+	if rawJSONHasField(r.Body, "name") && req.Name == nil {
+		log.Printf("invalid: name explicitly null")
+		sendErrorResponse(w, http.StatusBadRequest, "name must not be null")
+		return
 	}
 
 	if req.Name != nil {
