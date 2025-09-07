@@ -2,6 +2,7 @@ package service
 
 import (
 	"SaltySpitoon/internal/constants"
+	"SaltySpitoon/internal/storage"
 	"SaltySpitoon/internal/utils"
 	"context"
 	"fmt"
@@ -21,7 +22,7 @@ func (s *Service) UploadFile(ctx context.Context, file io.Reader, filename strin
 		return "", constants.ErrInvalidFileType
 	}
 
-	bucket := constants.BucketName
+	bucket := storage.S3Bucket
 	identifier := uuid.NewString()
 
 	filepath := filepath.Join("/tmp", fmt.Sprintf("%s_%s", identifier, filename))

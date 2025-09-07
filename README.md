@@ -116,6 +116,7 @@ Write your query in db/sql/query directory and run `make db-generate-sql`
   export S3_ACCESS_KEY_ID=team-solid
   export S3_SECRET_ACCESS_KEY=@team-solid
   export S3_ENDPOINT=localhost:9000
+  export S3_BUCKET=images
 ```
 
 ## Access Minio
