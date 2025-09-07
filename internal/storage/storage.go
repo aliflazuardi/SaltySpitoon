@@ -14,6 +14,7 @@ var (
 	S3AccessKeyID     = os.Getenv("S3_ACCESS_KEY_ID")
 	S3SecretAccessKey = os.Getenv("S3_SECRET_ACCESS_KEY")
 	S3Endpoint        = os.Getenv("S3_ENDPOINT")
+	S3Bucket          = os.Getenv("S3_BUCKET")
 )
 
 type MinioStorage struct {
