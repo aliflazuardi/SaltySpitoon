@@ -3,7 +3,6 @@ package server
 import (
 	"SaltySpitoon/internal/model"
 	"SaltySpitoon/internal/utils"
-	"database/sql"
 	"encoding/json"
 	"io"
 	"log"
